@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # FastAPI 애플리케이션
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: receipt-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://receipts_user:receipts_password@db:5432/receipts_db
+      - LOG_LEVEL=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # PostgreSQL 데이터베이스
+  db:
+    image: postgres:15-alpine
+    container_name: receipt-db
+    environment:
+      - POSTGRES_USER=receipts_user
+      - POSTGRES_PASSWORD=receipts_password
+      - POSTGRES_DB=receipts_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U receipts_user -d receipts_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,10 @@
+[project]
+name = "devops-assessment"
+version = "0.1.0"
+description = "스팬딧 DevOps 기술면접 과제 샘플 서버프로젝트"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "fastapi[standard]>=0.119.1",
+]
