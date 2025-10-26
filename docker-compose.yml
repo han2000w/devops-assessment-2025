@@ -1,4 +1,5 @@
-version: '3.8'
+#version: '3.8'
+# Docker Compose V2에서는 version: 키가 deprecated
 
 services:
   # FastAPI 애플리케이션
@@ -17,7 +18,11 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # docker-compose의 curl 방식 healthcheck가 Dockerfile의 python 방식을 override하면서 curl 명령어를 찾지 못해
+      # 컨테이너의 healthcheck가 실패하여 unhealthy 상태가 됨. curl을 설치하면 불필요하게 image size가 증가하므로
+      # Dockerfile과 동일한 python 방식 healthcheck 사용
+      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 3s
       retries: 3

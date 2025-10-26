@@ -1,16 +1,28 @@
+# syntax=docker/dockerfile:1.7
+# Dockerfile syntax 1.7 사용
+
 # Multi-stage build를 활용한 최적화된 Dockerfile
-FROM python:3.11-slim as builder
+# ---- Build stage ----
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
+
+# 이미지 용량과 빌드 속도를 단축시킬수 있는 환경변수 추가
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # 의존성 파일 복사
 COPY requirements.txt .
 
-# 의존성 설치 (wheel 빌드)
-RUN pip install --no-cache-dir --user -r requirements.txt
+# venv에만 의존성 설치 (wheel 빌드, 런타임엔 pip 불필요)
+RUN python -m venv /opt/venv \
+    && . /opt/venv/bin/activate \
+    && pip install --no-compile --prefer-binary -r requirements.txt \
+    && python -B -m pip uninstall -y pip setuptools wheel
 
 
-# 실행 단계
+# ---- Runtime stage ----
 FROM python:3.11-slim
 
 # 보안을 위한 non-root 유저 생성
@@ -18,14 +30,16 @@ RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser
 
 WORKDIR /app
 
-# builder 단계에서 설치한 패키지 복사
-COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
+# venv만 복사
+COPY --from=builder /opt/venv /opt/venv
 
 # 애플리케이션 코드 복사
 COPY --chown=appuser:appuser main.py .
 
-# PATH 환경변수에 pip 설치 경로 추가
-ENV PATH=/home/appuser/.local/bin:$PATH
+# 런타임 환경변수 설정
+ENV PATH=/opt/venv/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # 애플리케이션 포트
 EXPOSE 8000
