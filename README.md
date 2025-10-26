@@ -1,5 +1,5 @@
 **a. 클라우드 아키텍처 다이어그램**
-<img width="986" height="697" alt="image" src="https://github.com/user-attachments/assets/2a4ea2c0-4f19-46cb-ad0e-9ce459082274" />
+<img width="986" height="697" alt="image" src="https://yogiting.s3.ap-northeast-2.amazonaws.com/%EA%B5%AC%EC%84%B1%EB%8F%84.png" />
 
 **b. 기술 선택 및 설계 근거**
 - 멀티 AZ를 기본 VPC 설계 전략으로 선정하여 하나의 AZ 다운시에도 서비스가 지속될수 있도록 하였습니다.
@@ -38,4 +38,5 @@
   - 트래픽 급증 시
     - 트래픽 급증시의 대응은 빠르고 효율적인 오토스케일링을 제공하는 k8s의 최대 장점입니다. HPA를 통해 pod를 수평확장 하고, Karpenter나 CA를 활용해 워커 노드를 확장하여 급증하는 트래픽에 대응 할 수 있습니다.
     - 만약 유입되는 트래픽이 정상적인 호출이 아닌 악의적인 목적을 가진 공격성 트래픽이라면 AWS의 보안그룹과 WAF의 보안정책을 활용하여 악의적인 트래픽 유입을 차단 할 수 있습니다.
+
 
